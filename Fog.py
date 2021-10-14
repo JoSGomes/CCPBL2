@@ -2,14 +2,16 @@ import json
 import random
 from threading import Thread
 from paho.mqtt import client as mqtt_client
+import quicksort
 
 MAX_CONNECTIONS = 10
 
 class FogThread(Thread):
 
-    def __init__(self, idThread, idFog):
+    def __init__(self, idThread, idFog):       
         Thread.__init__(self)
         self.id = idThread
+        self.idFog = idFog
         self.broker = '127.0.0.1'
         self.port = 1883
         self.topic = f'fog/{idFog}/{idThread}'
@@ -17,7 +19,7 @@ class FogThread(Thread):
         self.numConnections = 0
 
     def run(self):
-        client = self.connect_mqtt(f'FogThread {self.id}')
+        client = self.connect_mqtt(f'FogID {self.idFog} / ThreadID {self.id}')
         client.subscribe(self.topic)
         client.loop_forever()
 
@@ -25,6 +27,7 @@ class FogThread(Thread):
         client = mqtt_client.Client(client_id)
         client.on_connect = self.on_connect
         client.on_message = self.on_message       
+        client.on_disconnect = self.on_disconnect      
         client.connect(self.broker, self.port)
         return client
 
@@ -38,13 +41,19 @@ class FogThread(Thread):
                 att = True
             i += 1
         if not att:
-            self.data.append(patientReceived)           
+            self.data.append(patientReceived)       
+
+        quicksort.quickSort(self.data)
+        print(self.data)
         print("tamanho:", len(self.data), patientReceived['id'], self.id)
+
 
     def on_connect(self, client, userdata, flags, rc):
         print("rc: ", rc)
+        print("flags: ", flags)
     
-
+    def on_disconnect(self, client, userdata, rc):
+        print("desconectou", "rc: ", rc)
 
 class Fog:
 
@@ -66,12 +75,14 @@ class Fog:
         client = mqtt_client.Client(client_id)
         client.on_connect = self.on_connect
         client.on_message = self.on_message
-        client.connect(self.broker, self.port)
+        retorno = client.connect(self.broker, self.port)
+        print(retorno)
         return client
 
     def on_connect(self, client, userdata, flags, rc):
-        print("rc: ", rc)
-
+        print("flag: ", flags)
+   
+        
     def on_message(self, client, userdata, msg):
         idThread = None
         sizeTheads = len(self.threads)
@@ -98,5 +109,5 @@ class Fog:
         client.publish(f'device/{idDevice}', f'fog/{self.id}/{idThread}')
         
 
-fog = Fog(0)
+fog = Fog(int(input("Digite o número da Fog:")))
 fog.run()

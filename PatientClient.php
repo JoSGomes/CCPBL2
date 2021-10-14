@@ -36,7 +36,7 @@ class PatientClient {
                 $this->topic = $message;
                 $mqtt->interrupt();
             }, 0); #inscreve em device/idDevice
-            $mqtt->publish('fog/' . $this->fogID, $this->patient->getPatientID(), 0); #publica em fog/{idDevice}
+            $mqtt->publish('fog/' . $this->fogID, $this->patient->getPatientID(), 0); #publica em fog/{idFog}
             $mqtt->loop(True);
         }
     
