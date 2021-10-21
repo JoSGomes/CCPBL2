@@ -23,7 +23,7 @@ class PatientClient {
         $this->addr = '127.0.0.1';
         $this->port = 1883;
         $this->clientId = rand(5, 15);
-        $this->fogID = rand(0, 0); # [0, 4]
+        $this->fogID = rand(0, 1); # [0, 4]
     }
 
     public function run() 

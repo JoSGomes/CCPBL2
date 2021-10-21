@@ -1,8 +1,10 @@
-import json
-import random
 from threading import Thread
 from paho.mqtt import client as mqtt_client
+import socket
+import json
 import quicksort
+import random
+import pickle
 
 MAX_CONNECTIONS = 10
 
@@ -33,18 +35,21 @@ class FogThread(Thread):
 
     def on_message(self, client, userdata, msg):
         patientReceived = json.loads(msg.payload.decode('UTF-8'))
+        idPatient = patientReceived['id']
         i = 0
         att = False
         for patient in self.data:
-            if patient['id'] == patientReceived['id']:
+            if patient['id'] == idPatient:
                 self.data[i] = patientReceived
                 att = True
             i += 1
         if not att:
-            self.data.append(patientReceived)       
+            self.data.append(patientReceived) 
+            client.publish(f'fog/{self.idFog}/save-id', f'{idPatient},{self.id}')
+
+                  
 
         quicksort.quickSort(self.data)
-        print(self.data)
         print("tamanho:", len(self.data), patientReceived['id'], self.id)
 
 
@@ -60,15 +65,20 @@ class Fog:
     def __init__(self, id):
         self.id = id
         self.threads = []
-        self.devices = []
+        self.patientsID = {}
         self.broker = '127.0.0.1'
         self.port = 1883
-        self.topic = f'fog/{id}'
+        self.topicHandshake = f'fog/{id}'
+        self.topicPatients = f'fog/{id}/patients'
+        self.topicPatient = f'fog/{id}/patient'
+        self.topicSaveID = f'fog/{id}/save-id'
         
-
     def run(self):
         client = self.connect_mqtt(f'fog {self.id}')
-        client.subscribe(self.topic)
+        client.subscribe(self.topicHandshake)
+        client.subscribe(self.topicPatients)
+        client.subscribe(self.topicPatient)
+        client.subscribe(self.topicSaveID)
         client.loop_forever()
     
     def connect_mqtt(self, client_id):       
@@ -76,7 +86,6 @@ class Fog:
         client.on_connect = self.on_connect
         client.on_message = self.on_message
         retorno = client.connect(self.broker, self.port)
-        print(retorno)
         return client
 
     def on_connect(self, client, userdata, flags, rc):
@@ -84,29 +93,53 @@ class Fog:
    
         
     def on_message(self, client, userdata, msg):
-        idThread = None
-        sizeTheads = len(self.threads)
+        if (msg.topic == self.topicPatients):
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.sendto(json.dumps(self.threads[0].data).encode('utf-8'), ('127.0.0.1', 40000))
         
-        if sizeTheads == 0:
-            idThread = 0
-            newThread = FogThread(idThread, self.id) 
-            newThread.numConnections += 1 
-            newThread.start()        
-            self.threads.append(newThread)
+        elif(msg.topic == self.topicSaveID):
+            splited = msg.payload.decode('utf-8').split(',')
+            self.patientsID[int(splited[0])] = int(splited[1])
 
+        elif(msg.topic == self.topicPatient):
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            id = int(msg.payload.decode('utf-8'))
+            found = False
+            if id in self.patientsID:
+                threadID = self.patientsID[id]
+                patientsData = self.threads[threadID].data
+                for patient in patientsData:
+                    if(patient['id'] == id):
+                        s.sendto(json.dumps(patient).encode('utf-8'), ('127.0.0.1', 40000))
+                        found = True
+                        break
+            if not found:
+                s.sendto("-1".encode("utf-8"), ('127.0.0.1', 40000)) #Paciente não está presente nessa Fog.               
+            
         else:
-            for thread in self.threads:
-                if thread.numConnections < MAX_CONNECTIONS:
-                    idThread = thread.id
-                    thread.numConnections += 1
-                    break
-            if idThread == None:
-                idThread = sizeTheads
-                newThread = FogThread(idThread, self.id)
-                newThread.start()
+            idThread = None
+            sizeTheads = len(self.threads)
+            
+            if sizeTheads == 0:
+                idThread = 0
+                newThread = FogThread(idThread, self.id) 
+                newThread.numConnections += 1 
+                newThread.start()        
                 self.threads.append(newThread)
-        idDevice = msg.payload.decode('UTF-8')
-        client.publish(f'device/{idDevice}', f'fog/{self.id}/{idThread}')
+
+            else:
+                for thread in self.threads:
+                    if thread.numConnections < MAX_CONNECTIONS:
+                        idThread = thread.id
+                        thread.numConnections += 1
+                        break
+                if idThread == None:
+                    idThread = sizeTheads
+                    newThread = FogThread(idThread, self.id)
+                    newThread.start()
+                    self.threads.append(newThread)
+            idDevice = msg.payload.decode('UTF-8')
+            client.publish(f'device/{idDevice}', f'fog/{self.id}/{idThread}')
         
 
 fog = Fog(int(input("Digite o número da Fog:")))
