@@ -6,7 +6,7 @@ import quicksort
 import random
 import pickle
 
-MAX_CONNECTIONS = 10
+MAX_CONNECTIONS = 2
 
 class FogThread(Thread):
 
@@ -47,11 +47,8 @@ class FogThread(Thread):
             self.data.append(patientReceived) 
             client.publish(f'fog/{self.idFog}/save-id', f'{idPatient},{self.id}')
 
-                  
-
         quicksort.quickSort(self.data)
         print("tamanho:", len(self.data), patientReceived['id'], self.id)
-
 
     def on_connect(self, client, userdata, flags, rc):
         print("rc: ", rc)
@@ -94,8 +91,15 @@ class Fog:
         
     def on_message(self, client, userdata, msg):
         if (msg.topic == self.topicPatients):
+            n = int(msg.payload.decode('utf-8'))
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.sendto(json.dumps(self.threads[0].data).encode('utf-8'), ('127.0.0.1', 40000))
+            threadData = []
+            for thread in self.threads:
+                threadData.extend(thread.data[0:n])
+
+            quicksort.quickSort(threadData)
+            s.sendto(json.dumps(threadData[0:n]).encode('utf-8'), ('127.0.0.1', 40000))
+
         
         elif(msg.topic == self.topicSaveID):
             splited = msg.payload.decode('utf-8').split(',')

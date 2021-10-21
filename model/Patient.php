@@ -29,7 +29,7 @@ class Patient{
             return "Grave";
         }
         else{
-            return "Normal";
+            return "Estável";
         } 
     }
 
@@ -49,17 +49,17 @@ class Patient{
         $this->sensor->setTemperature(random_int(360, 380)/10);
         $this->sensor->setRespiratoryRate(random_int(9, 14));
         $this->sensor->setHeartRate(random_int(51, 100));
-        $this->sensor->setBloodOxygenation(random_int(96, 99));
+        $this->sensor->setBloodOxygenation(random_int(97, 99));
         $this->sensor->setArterialPressure(random_int(100, 120));
         $this->state = $this->verifyState($this->sensor);
     }
 
     public function generateMediumValuesSensor(){
-        $this->sensor->setTemperature(random_int(360, 400)/10);
-        $this->sensor->setRespiratoryRate(random_int(9, 29));
-        $this->sensor->setHeartRate(random_int(51, 130));
-        $this->sensor->setBloodOxygenation(random_int(40, 99));
-        $this->sensor->setArterialPressure(random_int(71, 120));
+        $this->sensor->setTemperature(random_int(370, 390)/10);
+        $this->sensor->setRespiratoryRate(random_int(12, 22));
+        $this->sensor->setHeartRate(random_int(100, 112));
+        $this->sensor->setBloodOxygenation(random_int(80, 99));
+        $this->sensor->setArterialPressure(random_int(61, 100));
         $this->state = $this->verifyState($this->sensor);
     }
 
@@ -67,7 +67,7 @@ class Patient{
         $this->sensor->setTemperature(random_int(380, 400)/10);
         $this->sensor->setRespiratoryRate(random_int(9, 29));
         $this->sensor->setHeartRate(random_int(51, 129));
-        $this->sensor->setBloodOxygenation(random_int(10, 99));
+        $this->sensor->setBloodOxygenation(random_int(30, 96));
         $this->sensor->setArterialPressure(random_int(71, 110));
         $this->state = $this->verifyState($this->sensor);
     }
