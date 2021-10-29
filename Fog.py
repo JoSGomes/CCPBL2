@@ -82,7 +82,7 @@ class Fog:
         client = mqtt_client.Client(client_id)
         client.on_connect = self.on_connect
         client.on_message = self.on_message
-        retorno = client.connect(self.broker, self.port)
+        client.connect(self.broker, self.port)
         return client
 
     def on_connect(self, client, userdata, flags, rc):
@@ -92,13 +92,14 @@ class Fog:
     def on_message(self, client, userdata, msg):
         if (msg.topic == self.topicPatients):
             n = int(msg.payload.decode('utf-8'))
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             threadData = []
             for thread in self.threads:
                 threadData.extend(thread.data[0:n])
 
             quicksort.quickSort(threadData)
-            s.sendto(json.dumps(threadData[0:n]).encode('utf-8'), ('127.0.0.1', 40000))
+            client.publish(f'api/patients', json.dumps(threadData))
+            #s.sendto(json.dumps(threadData[0:n]).encode('utf-8'), ('127.0.0.1', 40000))
 
         
         elif(msg.topic == self.topicSaveID):
@@ -106,7 +107,6 @@ class Fog:
             self.patientsID[int(splited[0])] = int(splited[1])
 
         elif(msg.topic == self.topicPatient):
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             id = int(msg.payload.decode('utf-8'))
             found = False
             if id in self.patientsID:
@@ -114,11 +114,11 @@ class Fog:
                 patientsData = self.threads[threadID].data
                 for patient in patientsData:
                     if(patient['id'] == id):
-                        s.sendto(json.dumps(patient).encode('utf-8'), ('127.0.0.1', 40000))
+                        client.publish(f'api/patient', json.dumps(patient))
                         found = True
                         break
             if not found:
-                s.sendto("-1".encode("utf-8"), ('127.0.0.1', 40000)) #Paciente não está presente nessa Fog.               
+                client.publish(f'api/patient', "-1") #Paciente não está presente nessa Fog.               
             
         else:
             idThread = None

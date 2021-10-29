@@ -4,13 +4,19 @@ sys.path.insert(0, 'C:\\Users\\pbexp\\Documents\\GitHub\\CCPBL2')
 from paho.mqtt import client as mqtt_client
 from flask import Flask, jsonify
 from flask_cors import CORS, cross_origin
+from flask_restful import Resource, Api
 import numpy as np
 import quicksort
 import socket
 import json
-
+import time
+from datetime import datetime
  
 fogsID = np.arange(2)
+patientsResponse = []
+
+patientResponse = ""
+found = False
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -20,40 +26,53 @@ CORS(app, support_credentials=True)
 def patients(n: int):
     client = mqtt_client.Client("ServerApiPatients")
     client.on_connect = on_connect
+    client.on_message = on_message_patients
+
     client.connect('127.0.0.1', 1883)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(('127.0.0.1', 40000))
-    dataResponse = []
+    client.subscribe(f'api/patients')
 
+    init = time.time()
     for fogID in fogsID:
-        client.publish(f'fog/{fogID}/patients', n)       
-        dataResponse.extend(json.loads(s.recv(4096).decode('UTF-8')))
-        #pegar a latencia
+        client.publish(f'fog/{fogID}/patients', n)     
+        client.loop_forever()
 
-    quicksort.quickSort(dataResponse)
-    s.close()
-    return jsonify(dataResponse[0:n])
+    diff = (time.time() - init) * 1000
+    print(diff)
+    quicksort.quickSort(patientsResponse)
+    return jsonify(patientsResponse[0:n])
 
 @app.route("/patient/<int:id>", methods=['GET'])
 @cross_origin(supports_credentials=True)
 def patient(id: int):
     client = mqtt_client.Client("ServerApiPatient")
     client.on_connect = on_connect
+    client.on_message = on_message_patient
+
     client.connect('127.0.0.1', 1883)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
-    s.bind(('127.0.0.1', 40000))
- 
-    patientResponse = None
+    client.subscribe(f'api/patient')
+
     for fogID in fogsID:
-        client.publish(f'fog/{fogID}/patient', id)        
-        socketResponse = s.recv(4096).decode('UTF-8')
-        if(socketResponse != "-1"):
-            patientResponse = json.loads(socketResponse)
+        client.publish(f'fog/{fogID}/patient', id)  
+        client.loop_forever()     
+        if found:
             break
-    s.close
-    if patientResponse == None:
+
+    if patientResponse == "":
         return jsonify({"message": "Paciente não encontrado."}), 404
+
     return jsonify(patientResponse)
 
-def on_connect(self, client, userdata, flags, rc):
-    return rc
+def on_connect(client, userdata, flags, rc):
+    print("Conectado ao broker.")
+
+def on_message_patients(client, userdata, msg):
+    patientsResponse.extend(json.loads(msg.payload.decode('UTF-8')))
+    client.disconnect()
+
+def on_message_patient(client, userdata, msg):
+    payload = msg.payload.decode('UTF-8') 
+    if payload != "-1":
+        global found, patientResponse
+        found = True
+        patientResponse = json.loads(payload)
+    client.disconnect()
