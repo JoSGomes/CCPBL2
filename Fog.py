@@ -6,7 +6,7 @@ import quicksort
 import random
 import pickle
 
-MAX_CONNECTIONS = 2
+MAX_CONNECTIONS = 20
 
 class FogThread(Thread):
 
@@ -14,8 +14,11 @@ class FogThread(Thread):
         Thread.__init__(self)
         self.id = idThread
         self.idFog = idFog
-        self.broker = '127.0.0.1'
-        self.port = 1883
+        if idFog:
+            self.broker = '26.183.229.122'
+        else:
+            self.broker = '26.90.73.25'
+        self.port = 40000
         self.topic = f'fog/{idFog}/{idThread}'
         self.data = []
         self.numConnections = 0
@@ -63,8 +66,11 @@ class Fog:
         self.id = id
         self.threads = []
         self.patientsID = {}
-        self.broker = '127.0.0.1'
-        self.port = 1883
+        if id:
+            self.broker = '26.183.229.122'
+        else:
+            self.broker = '26.90.73.25'
+        self.port = 40000
         self.topicHandshake = f'fog/{id}'
         self.topicPatients = f'fog/{id}/patients'
         self.topicPatient = f'fog/{id}/patient'
@@ -92,14 +98,12 @@ class Fog:
     def on_message(self, client, userdata, msg):
         if (msg.topic == self.topicPatients):
             n = int(msg.payload.decode('utf-8'))
-            #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             threadData = []
             for thread in self.threads:
                 threadData.extend(thread.data[0:n])
 
             quicksort.quickSort(threadData)
             client.publish(f'api/patients', json.dumps(threadData))
-            #s.sendto(json.dumps(threadData[0:n]).encode('utf-8'), ('127.0.0.1', 40000))
 
         
         elif(msg.topic == self.topicSaveID):

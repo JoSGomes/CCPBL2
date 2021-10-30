@@ -12,32 +12,25 @@ class Patient{
         $this->state = $this->verifyState($this->sensor); 
     }
 
-    public function verifyState($sensor){
-        if($sensor->getRespiratoryRate() >= 21){
+    public function verifyState($sensor)
+    {
+        if($sensor->getBloodOxygenation() <= 96)
+        {
             return "Grave";
         }
-        else if($sensor->getHeartRate() >= 111){
-            return "Grave";
-        }
-        else if($sensor->getArterialPressure() <= 71){
-            return "Grave";
-        }
-        else if($sensor->getTemperature() >= 38){
-            return "Grave";
-        }
-        else if($sensor->getBloodOxygenation() <= 96){
-            return "Grave";
-        }
-        else{
+        else
+        {
             return "Estável";
         } 
     }
 
-    public function getPacientState(){
+    public function getPacientState()
+    {
         return $this->state;
     }
 
-    public function getPatientSensor(){
+    public function getPatientSensor()
+    {
         return $this->sensor;
     }
 
@@ -45,7 +38,8 @@ class Patient{
         return $this->id;
     }
 
-    public function generateNormalValuesSensor(){
+    public function generateNormalValuesSensor()
+    {
         $this->sensor->setTemperature(random_int(360, 380)/10);
         $this->sensor->setRespiratoryRate(random_int(9, 14));
         $this->sensor->setHeartRate(random_int(51, 100));
@@ -54,16 +48,18 @@ class Patient{
         $this->state = $this->verifyState($this->sensor);
     }
 
-    public function generateMediumValuesSensor(){
+    public function generateMediumValuesSensor()
+    {
         $this->sensor->setTemperature(random_int(370, 390)/10);
         $this->sensor->setRespiratoryRate(random_int(12, 22));
         $this->sensor->setHeartRate(random_int(100, 112));
-        $this->sensor->setBloodOxygenation(random_int(80, 99));
-        $this->sensor->setArterialPressure(random_int(61, 100));
+        $this->sensor->setBloodOxygenation(random_int(90, 97));
+        $this->sensor->setArterialPressure(random_int(80, 100));
         $this->state = $this->verifyState($this->sensor);
     }
 
-    public function generateLargeValuesSensor(){
+    public function generateLargeValuesSensor()
+    {
         $this->sensor->setTemperature(random_int(380, 400)/10);
         $this->sensor->setRespiratoryRate(random_int(9, 29));
         $this->sensor->setHeartRate(random_int(51, 129));

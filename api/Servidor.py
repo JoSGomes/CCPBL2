@@ -12,7 +12,7 @@ import json
 import time
 from datetime import datetime
  
-fogsID = np.arange(2)
+fogsID = ['26.90.73.25', '26.183.229.122']
 patientsResponse = []
 
 patientResponse = ""
@@ -24,17 +24,21 @@ CORS(app, support_credentials=True)
 @app.route('/patients/<int:n>', methods=['GET'])
 @cross_origin(supports_credentials=True)
 def patients(n: int):
+    global patientsResponse 
     client = mqtt_client.Client("ServerApiPatients")
     client.on_connect = on_connect
     client.on_message = on_message_patients
-
-    client.connect('127.0.0.1', 1883)
-    client.subscribe(f'api/patients')
-
+    
     init = time.time()
+    i = 0
+    
+    patientsResponse = []
     for fogID in fogsID:
-        client.publish(f'fog/{fogID}/patients', n)     
+        client.connect(fogID, 40000)
+        client.subscribe(f'api/patients')
+        client.publish(f'fog/{i}/patients', n)     
         client.loop_forever()
+        i += 1
 
     diff = (time.time() - init) * 1000
     print(diff)
@@ -48,15 +52,15 @@ def patient(id: int):
     client.on_connect = on_connect
     client.on_message = on_message_patient
 
-    client.connect('127.0.0.1', 1883)
-    client.subscribe(f'api/patient')
-
+    i = 0
     for fogID in fogsID:
-        client.publish(f'fog/{fogID}/patient', id)  
+        client.connect(fogID, 40000)
+        client.subscribe(f'api/patient')
+        client.publish(f'fog/{i}/patient', id)  
         client.loop_forever()     
         if found:
             break
-
+        i += 1
     if patientResponse == "":
         return jsonify({"message": "Paciente não encontrado."}), 404
 

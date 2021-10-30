@@ -20,10 +20,18 @@ class PatientClient {
     public function __construct() { 
         $this->patient = new Patient(new Sensor(random_int(360, 400)/10,random_int(9, 29) ,random_int(51, 130), random_int(40, 99), random_int(71, 120) ),  random_int(1111, 9999));
         $this->tendency = random_int(0, 2);
-        $this->addr = '127.0.0.1';
-        $this->port = 1883;
+        $this->fogID = rand(0, 1);
+        if($this->fogID)
+        {
+            $this->addr = '26.183.229.122';
+        }
+        else
+        {
+            $this->addr = '26.90.73.25';
+        }
+        $this->port = 40000;
         $this->clientId = rand(0, 9999);
-        $this->fogID = rand(0, 1); # [0, 4]
+        
     }
 
     public function run() 
