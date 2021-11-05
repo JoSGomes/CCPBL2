@@ -42,7 +42,7 @@ def patients(n: int):
         i += 1
 
     diff = (time.time() - init) * 1000
-    #print(diff)
+    #print(diff) #retire o comentário caso queira saber o tempo para pegar os dados das Fog's e execute novamente a API.
     quicksort.quickSort(patientsResponse)
     return jsonify(patientsResponse[0:n])
 
