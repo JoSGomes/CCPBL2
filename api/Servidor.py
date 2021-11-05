@@ -42,7 +42,7 @@ def patients(n: int):
         i += 1
 
     diff = (time.time() - init) * 1000
-    print(diff)
+    #print(diff)
     quicksort.quickSort(patientsResponse)
     return jsonify(patientsResponse[0:n])
 
@@ -68,7 +68,7 @@ def patient(id: int):
     return jsonify(patientResponse)
 
 def on_connect(client, userdata, flags, rc):
-    print("Conectado ao broker.")
+    rc = rc
 
 def on_message_patients(client, userdata, msg):
     patientsResponse.extend(json.loads(msg.payload.decode('UTF-8')))
