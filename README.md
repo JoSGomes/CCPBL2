@@ -10,7 +10,7 @@ Repositório destinado ao problema 2 da disciplina de Concorrência e Conectivid
 
 - O projeto está divido em 3 pastas e em 3 arquivos na pasta raiz.
   - **api**
-    - Essa pasta contém o arquivo do servidor, sendo recomendável criar um novo ambiente python para instalar as dependências da API, que incluem: o <a link=https://pypi.org/project/paho-mqtt/>paho-mqtt</a>, o Framework Flask, a extensão flask_cors e flask_restful.
+    - Essa pasta contém o arquivo do servidor, sendo recomendável criar um novo ambiente python para instalar as dependências da API, que incluem: o <a link=https://pypi.org/project/paho-mqtt/>paho-mqtt</a>, o Framework Flask, as extensões flask_cors e flask_restful.
   - **model**
     - Essa pasta possui o código em php do dispositivo e as suas duas dependências que são ``Sensor.php`` e ``Patient.php``.
   - **vendor**
