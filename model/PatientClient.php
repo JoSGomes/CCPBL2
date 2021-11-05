@@ -1,8 +1,8 @@
 <?php
 
 require "vendor/autoload.php";
-require "model/Patient.php";
-require "model/Sensor.php";
+require "Patient.php";
+require "Sensor.php";
 
 use \PhpMqtt\Client\MqttClient;
 
