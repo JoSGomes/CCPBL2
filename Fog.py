@@ -1,12 +1,13 @@
 from threading import Thread
 from paho.mqtt import client as mqtt_client
-import socket
 import json
 import quicksort
 import random
-import pickle
 
 MAX_CONNECTIONS = 20
+BROKER_ADDR0 = '26.90.73.25'
+BROKER_ADDR1 = '26.183.229.122'
+PORT_BROKER = 40000
 
 class FogThread(Thread):
 
@@ -15,10 +16,10 @@ class FogThread(Thread):
         self.id = idThread
         self.idFog = idFog
         if idFog:
-            self.broker = '26.183.229.122'
+            self.broker = BROKER_ADDR1
         else:
-            self.broker = '26.90.73.25'
-        self.port = 40000
+            self.broker = BROKER_ADDR0 
+        self.port = PORT_BROKER
         self.topic = f'fog/{idFog}/{idThread}'
         self.data = []
         self.numConnections = 0
@@ -67,10 +68,10 @@ class Fog:
         self.threads = []
         self.patientsID = {}
         if id:
-            self.broker = '26.183.229.122'
+            self.broker = BROKER_ADDR1
         else:
-            self.broker = '26.90.73.25'
-        self.port = 40000
+            self.broker = BROKER_ADDR0
+        self.port = PORT_BROKER
         self.topicHandshake = f'fog/{id}'
         self.topicPatients = f'fog/{id}/patients'
         self.topicPatient = f'fog/{id}/patient'

@@ -12,7 +12,8 @@ import json
 import time
 from datetime import datetime
  
-fogsID = ['26.90.73.25', '26.183.229.122']
+fogsAddr = ['26.90.73.25', '26.183.229.122']
+PORT = 40000
 patientsResponse = []
 
 patientResponse = ""
@@ -33,8 +34,8 @@ def patients(n: int):
     i = 0
     
     patientsResponse = []
-    for fogID in fogsID:
-        client.connect(fogID, 40000)
+    for addr in fogsAddr:
+        client.connect(addr, PORT)
         client.subscribe(f'api/patients')
         client.publish(f'fog/{i}/patients', n)     
         client.loop_forever()
@@ -53,8 +54,8 @@ def patient(id: int):
     client.on_message = on_message_patient
 
     i = 0
-    for fogID in fogsID:
-        client.connect(fogID, 40000)
+    for addr in fogsAddr:
+        client.connect(addr, PORT)
         client.subscribe(f'api/patient')
         client.publish(f'fog/{i}/patient', id)  
         client.loop_forever()     
